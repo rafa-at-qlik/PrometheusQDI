@@ -1,0 +1,5 @@
+QEM:
+  collection_interval_s: 30
+
+Prometheus:
+  pull_port: 8567
