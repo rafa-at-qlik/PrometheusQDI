@@ -6,18 +6,22 @@ class QEMGauge(Task):
 
     def __init__(self):
         self.labels = ["replicate_server", "task_name"]
+        
         # cdc_event_counters
         self.cdc_event_counters__applied_insert_count = \
             Gauge("cdc_event_counters__applied_insert_count",
                   "The number of records added in total for all tables."
                   , self.labels)
+        
         self.cdc_event_counters__applied_update_count = \
             Gauge("cdc_event_counters__applied_update_count",
                   "The number of records updated in total for all tables."
                   , self.labels)
+        
         self.cdc_event_counters__applied_delete_count = \
             Gauge("cdc_event_counters__applied_delete_count",
                   "The number of records deleted in total for all tables.", self.labels)
+        
         self.cdc_event_counters__applied_ddl_count = \
             Gauge("cdc_event_counters__applied_ddl_count",
                   "The total number of metadata changes, such as add column."
