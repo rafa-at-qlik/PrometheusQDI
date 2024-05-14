@@ -37,6 +37,7 @@ class QEMGauge(Task):
             Gauge("full_load_counters__tables_loading_count",
                   "The number of tables that are currently being loaded into the target endpoint."
                   , self.labels)
+        
         self.full_load_counters__tables_queued_count = \
             Gauge("full_load_counters__tables_queued_count",
                   "The number of tables that are waiting to be loaded due to an error."
