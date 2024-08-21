@@ -6,7 +6,13 @@ class QEMGauge(Task):
 
     def __init__(self):
         self.labels = ["replicate_server", "task_name"]
-        
+
+        # Task State
+        self.task_state = \
+            Gauge("task_state",
+                  "0 - Task Stopped, 1 - Task Running, 2 - Task Stopped Due to Fatal Error, 3 - The task has detected an error and is trying to recover"
+                  , self.labels)
+
         # cdc_event_counters
         self.cdc_event_counters__applied_insert_count = \
             Gauge("cdc_event_counters__applied_insert_count",
@@ -192,148 +198,149 @@ class QEMGauge(Task):
 
     def set_gauges(self, v_task_dc, v_rep_server, v_task_name):
 
+        # task_state
+        task_state = -1
+        match v_task_dc.state:
+            case "STOPPED": task_state = 0
+            case "RUNNING": task_state = 1
+            case "ERROR": task_state = 2
+            case "RECOVERING": task_state = 3
+
+        self.task_state.labels(v_rep_server, v_task_name).set(task_state)
+
         # cdc_event_counters
-        self.cdc_event_counters__applied_insert_count.labels({"replicate_server": v_rep_server},
-                                                             {"task_name": v_task_name}).set(
+        self.cdc_event_counters__applied_insert_count.labels(v_rep_server, v_task_name).set(
             v_task_dc.cdc_event_counters['applied_insert_count'])
 
-        self.cdc_event_counters__applied_update_count.labels({"replicate_server": v_rep_server},
-                                                             {"task_name": v_task_name}).set(
+        self.cdc_event_counters__applied_update_count.labels(v_rep_server, v_task_name).set(
             v_task_dc.cdc_event_counters['applied_update_count'])
 
-        self.cdc_event_counters__applied_delete_count.labels({"replicate_server": v_rep_server},
-                                                             {"task_name": v_task_name}).set(
+        self.cdc_event_counters__applied_delete_count.labels(v_rep_server, v_task_name).set(
             v_task_dc.cdc_event_counters['applied_delete_count'])
 
-        self.cdc_event_counters__applied_ddl_count.labels({"replicate_server": v_rep_server},
-                                                             {"task_name": v_task_name}).set(
+        self.cdc_event_counters__applied_ddl_count.labels(v_rep_server, v_task_name).set(
             v_task_dc.cdc_event_counters['applied_ddl_count'])
 
         # full_load_counters
-        self.full_load_counters__tables_completed_count.labels({"replicate_server": v_rep_server},
-                                                             {"task_name": v_task_name}).set(
+        self.full_load_counters__tables_completed_count.labels(v_rep_server, v_task_name).set(
             v_task_dc.full_load_counters['tables_completed_count'])
 
-        self.full_load_counters__tables_loading_count.labels({"replicate_server": v_rep_server},
-                                                             {"task_name": v_task_name}).set(
+        self.full_load_counters__tables_loading_count.labels(v_rep_server, v_task_name).set(
             v_task_dc.full_load_counters['tables_loading_count'])
 
-        self.full_load_counters__tables_queued_count.labels({"replicate_server": v_rep_server},
-                                                             {"task_name": v_task_name}).set(
+        self.full_load_counters__tables_queued_count.labels(v_rep_server, v_task_name).set(
             v_task_dc.full_load_counters['tables_queued_count'])
 
-        self.full_load_counters__tables_with_error_count.labels({"replicate_server": v_rep_server},
-                                                             {"task_name": v_task_name}).set(
+        self.full_load_counters__tables_with_error_count.labels(v_rep_server, v_task_name).set(
             v_task_dc.full_load_counters['tables_with_error_count'])
 
-        self.full_load_counters__records_completed_count.labels({"replicate_server": v_rep_server},
-                                                             {"task_name": v_task_name}).set(
+        self.full_load_counters__records_completed_count.labels(v_rep_server, v_task_name).set(
             v_task_dc.full_load_counters['records_completed_count'])
 
         self.full_load_counters__estimated_records_for_all_tables_count.labels(
-            {"replicate_server": v_rep_server}, {"task_name": v_task_name}).set(
+             v_rep_server, v_task_name).set(
             v_task_dc.full_load_counters['estimated_records_for_all_tables_count'])
         #####
         # full_load_throughput
         self.full_load_throughput__source_throughput_records_count.labels(
-            {"replicate_server": v_rep_server}, {"task_name": v_task_name}).set(
+             v_rep_server, v_task_name).set(
             v_task_dc.full_load_throughput['source_throughput_records_count'])
 
         self.full_load_throughput__source_throughput_volume.labels(
-            {"replicate_server": v_rep_server}, {"task_name": v_task_name}).set(
+             v_rep_server, v_task_name).set(
             v_task_dc.full_load_throughput['source_throughput_volume'])
 
         self.full_load_throughput__target_throughput_records_count.labels(
-            {"replicate_server": v_rep_server}, {"task_name": v_task_name}).set(
+             v_rep_server, v_task_name).set(
             v_task_dc.full_load_throughput['target_throughput_records_count'])
 
         self.full_load_throughput__target_throughput_volume.labels(
-            {"replicate_server": v_rep_server}, {"task_name": v_task_name}).set(
+             v_rep_server, v_task_name).set(
             v_task_dc.full_load_throughput['target_throughput_volume'])
         #####
         # cdc_throughput
         self.cdc_throughput__source_throughput_records_count__current.labels(
-            {"replicate_server": v_rep_server}, {"task_name": v_task_name}).set(
+             v_rep_server, v_task_name).set(
             v_task_dc.cdc_throughput['source_throughput_records_count']['current'])
 
         self.cdc_throughput__source_throughput_volume__current.labels(
-            {"replicate_server": v_rep_server}, {"task_name": v_task_name}).set(
+             v_rep_server, v_task_name).set(
             v_task_dc.cdc_throughput['source_throughput_volume']['current'])
 
         self.cdc_throughput__target_throughput_records_count__current.labels(
-            {"replicate_server": v_rep_server}, {"task_name": v_task_name}).set(
+             v_rep_server, v_task_name).set(
             v_task_dc.cdc_throughput['target_throughput_records_count']['current'])
 
         self.cdc_throughput__target_throughput_volume__current.labels(
-            {"replicate_server": v_rep_server}, {"task_name": v_task_name}).set(
+             v_rep_server, v_task_name).set(
             v_task_dc.cdc_throughput['target_throughput_volume']['current'])
         #####
         # cdc_transactions_counters
         self.cdc_transactions_counters__commit_change_records_count.labels(
-            {"replicate_server": v_rep_server}, {"task_name": v_task_name}).set(
+             v_rep_server, v_task_name).set(
             v_task_dc.cdc_transactions_counters['commit_change_records_count'])
 
         self.cdc_transactions_counters__rollback_transaction_count.labels(
-            {"replicate_server": v_rep_server}, {"task_name": v_task_name}).set(
+             v_rep_server, v_task_name).set(
             v_task_dc.cdc_transactions_counters['rollback_transaction_count'])
 
         self.cdc_transactions_counters__rollback_change_records_count.labels(
-            {"replicate_server": v_rep_server}, {"task_name": v_task_name}).set(
+             v_rep_server, v_task_name).set(
             v_task_dc.cdc_transactions_counters['rollback_change_records_count'])
 
         self.cdc_transactions_counters__rollback_change_volume_mb.labels(
-            {"replicate_server": v_rep_server}, {"task_name": v_task_name}).set(
+             v_rep_server, v_task_name).set(
             v_task_dc.cdc_transactions_counters['rollback_change_volume_mb'])
 
         self.cdc_transactions_counters__applied_transactions_in_progress_count.labels(
-            {"replicate_server": v_rep_server}, {"task_name": v_task_name}).set(
+             v_rep_server, v_task_name).set(
             v_task_dc.cdc_transactions_counters['applied_transactions_in_progress_count'])
 
         self.cdc_transactions_counters__applied_records_in_progress_count.labels(
-            {"replicate_server": v_rep_server}, {"task_name": v_task_name}).set(
+             v_rep_server, v_task_name).set(
             v_task_dc.cdc_transactions_counters['applied_records_in_progress_count'])
 
         self.cdc_transactions_counters__applied_comitted_transaction_count.labels(
-            {"replicate_server": v_rep_server}, {"task_name": v_task_name}).set(
+             v_rep_server, v_task_name).set(
             v_task_dc.cdc_transactions_counters['applied_comitted_transaction_count'])
 
         self.cdc_transactions_counters__applied_records_comitted_count.labels(
-            {"replicate_server": v_rep_server}, {"task_name": v_task_name}).set(
+             v_rep_server, v_task_name).set(
             v_task_dc.cdc_transactions_counters['applied_records_comitted_count'])
 
         self.cdc_transactions_counters__applied_volume_comitted_mb.labels(
-            {"replicate_server": v_rep_server}, {"task_name": v_task_name}).set(
+             v_rep_server, v_task_name).set(
             v_task_dc.cdc_transactions_counters['applied_volume_comitted_mb'])
 
         self.cdc_transactions_counters__incoming_accumulated_changes_in_memory_count.labels(
-            {"replicate_server": v_rep_server}, {"task_name": v_task_name}).set(
+             v_rep_server, v_task_name).set(
             v_task_dc.cdc_transactions_counters['incoming_accumulated_changes_in_memory_count'])
 
         self.cdc_transactions_counters__incoming_accumulated_changes_on_disk_count.labels(
-            {"replicate_server": v_rep_server}, {"task_name": v_task_name}).set(
+             v_rep_server, v_task_name).set(
             v_task_dc.cdc_transactions_counters['incoming_accumulated_changes_on_disk_count'])
         #####
         # cdc_latency
         self.cdc_latency__source_latency.labels(
-            {"replicate_server": v_rep_server}, {"task_name": v_task_name}).set(
+             v_rep_server, v_task_name).set(
             get_sec(v_task_dc.cdc_latency['source_latency']))
 
         self.cdc_latency__total_latency.labels(
-            {"replicate_server": v_rep_server}, {"task_name": v_task_name}).set(
+             v_rep_server, v_task_name).set(
             get_sec(v_task_dc.cdc_latency['total_latency']))
         #####
         self.memory_mb.labels(
-            {"replicate_server": v_rep_server}, {"task_name": v_task_name}).set(
+             v_rep_server, v_task_name).set(
             v_task_dc.memory_mb)
 
         self.cpu_percentage.labels(
-            {"replicate_server": v_rep_server}, {"task_name": v_task_name}).set(
+             v_rep_server, v_task_name).set(
             v_task_dc.cpu_percentage)
 
         self.disk_usage_mb.labels(
-            {"replicate_server": v_rep_server}, {"task_name": v_task_name}).set(
+             v_rep_server, v_task_name).set(
             v_task_dc.disk_usage_mb)
 
         self.data_error_count.labels(
-            {"replicate_server": v_rep_server}, {"task_name": v_task_name}).set(
+             v_rep_server, v_task_name).set(
             v_task_dc.data_error_count)
